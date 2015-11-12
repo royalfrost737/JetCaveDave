@@ -1,19 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CameraMover : MonoBehaviour {
+public class CameraMover : MonoBehaviour 
+{
 
-    public Transform player;
-	public float xdistance;
-    public float ydistance;
-    public float zdistance;
+	public float speed;
 
-    void Update()
-    {
-        if (player != null)
-        {
-            transform.position = new Vector3(player.position.x + xdistance, player.position.y + ydistance, player.position.z + zdistance);
 
-        }   
-    }
+   void FixedUpdate()
+	{
+		Vector3 movement = new Vector3 (0.0f, 0.0f, speed);
+		GetComponent<Rigidbody>().velocity = movement;
+	}
 }

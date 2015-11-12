@@ -4,13 +4,15 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
-    public float speed;
+	public float speed, xOffset, yOffset, zOffset;
 	public GameObject shot;
     public Transform shotSpawn;
 	public bool haveShield;
     public float fireRate;
     private float nextFire;
 	private bool inThreshold, up, down, left, right, gunUpgraded;
+	private float xMin, xMax, zMin, zMax, yNorm; 
+	public GameObject camera;
 
 	public AudioClip regularShot;
 	public AudioClip upgradedShot;
@@ -41,6 +43,14 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+		// Continually calculate the player's boundary in relation to the camera
+		xMin = camera.transform.position.x-xOffset;
+		xMax = camera.transform.position.x+xOffset;
+		zMin = camera.transform.position.z-zOffset;
+		// This limits the player to the lower half of the screen
+		zMax = camera.transform.position.z-zOffset/4;
+		yNorm = camera.transform.position.y+yOffset;
+
 		// Use a plane to make it easy to determine distance from player to mouse cursor
         Plane castedPlane = new Plane(Vector3.up, Vector3.zero); 
 
@@ -130,6 +140,13 @@ public class PlayerController : MonoBehaviour
 				transform.Rotate (0, 180, 0);
 			}
 		}
+
+		GetComponent<Rigidbody>().transform.position = new Vector3 
+			(
+				Mathf.Clamp (GetComponent<Rigidbody>().transform.position.x, xMin, xMax),
+				yNorm,
+				Mathf.Clamp(GetComponent<Rigidbody>().transform.position.z, zMin, zMax)
+				);
     }
 
 	void FixedUpdate()
@@ -139,11 +156,11 @@ public class PlayerController : MonoBehaviour
 		float moveVertical = Input.GetAxis("Vertical");
 
 		Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
-		if (((movement.x > 0) && (left == true)) || ((movement.x < 0) && (right == true)) ||
+		/*if (((movement.x > 0) && (left == true)) || ((movement.x < 0) && (right == true)) ||
 			((movement.z > 0) && (down == true)) || ((movement.z < 0) && (up == true)))
 		{
 			return;
-		}
+		}*/
 
 		GetComponent<Rigidbody>().velocity = movement * speed;
 
