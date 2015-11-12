@@ -4,18 +4,16 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
-	public float speed, xOffset, yOffset, zOffset;
-	public GameObject shot;
+	// Public variables
+	public AudioClip regularShot, upgradedShot;
+	public bool haveShield, alreadyRotated;
+	public float speed, xOffset, yOffset, zOffset, fireRate, rotationSpeed;
+	public GameObject shot, camera;
     public Transform shotSpawn;
-	public bool haveShield;
-    public float fireRate;
-    private float nextFire;
-	private bool inThreshold, up, down, left, right, gunUpgraded;
-	private float xMin, xMax, zMin, zMax, yNorm; 
-	public GameObject camera;
 
-	public AudioClip regularShot;
-	public AudioClip upgradedShot;
+	// Private variables
+	private bool inThreshold, up, down, left, right, gunUpgraded;
+	private float xMin, xMax, zMin, zMax, yNorm, nextFire; 
 
 	void Start()
 	{
@@ -27,6 +25,7 @@ public class PlayerController : MonoBehaviour
 		right = false;
 		gunUpgraded = false;
 		haveShield = false;
+		alreadyRotated = false;
 	}
 
 	// Subscribe to DestroyByContact's alert when a gun upgrade is picked up
@@ -75,32 +74,25 @@ public class PlayerController : MonoBehaviour
 				// Calculate the shooting angle
                 shotSpawn.rotation = Quaternion.LookRotation((hitPoint-shotSpawn.position).normalized);
 
-				Debug.Log ("hit point: " + hitPoint);
-				Debug.Log ("shot spawn: " + shotSpawn.position);
-				Debug.Log ("player: " + transform.position);
-				Debug.Log ("rotation: " + shotSpawn.rotation);
-
 				// Calculate the shot spawn location
 				Vector3 forward = transform.TransformDirection(Vector3.up);
 				Vector3 toOther = hitPoint - shotSpawn.position;
-				Quaternion upAdjust = shotSpawn.rotation * Quaternion.Euler (-65, 0, 0);
-				Quaternion leftAdjust = shotSpawn.rotation * Quaternion.Euler(-65, -30, 0);
-				Quaternion rightAdjust = shotSpawn.rotation * Quaternion.Euler (-65, 30, 0);
+				Quaternion leftAdjust = shotSpawn.rotation * Quaternion.Euler(0, -30, 0);
+				Quaternion rightAdjust = shotSpawn.rotation * Quaternion.Euler (0, 30, 0);
 
 				// Fire the shot in the correct direction
 				if (Vector3.Dot(forward, toOther) >= 0)
 				{
-					Instantiate(shot, shotSpawn.position, upAdjust);
+					Instantiate(shot, shotSpawn.position, shotSpawn.rotation);
 					if (gunUpgraded)
-					{		AudioSource.PlayClipAtPoint (regularShot, transform.position);
-
+					{		
+						AudioSource.PlayClipAtPoint (regularShot, transform.position);
 						Instantiate(shot, shotSpawn.position, leftAdjust);
 						Instantiate(shot, shotSpawn.position, rightAdjust);
 					}
 					else
 					{
 						AudioSource.PlayClipAtPoint (upgradedShot, transform.position);
-
 					}
 				}
 			}
@@ -111,33 +103,49 @@ public class PlayerController : MonoBehaviour
 		float upDown = Input.GetAxis ("Vertical");
 
 		// If the player is in an intersection, he or she can rotate in 90-degree directions
-		if (inThreshold == true) {
-			if ((leftRight > 0) && (left == false)) {
-				right = true;
-				up = false;
-				down = false;
-				transform.up = new Vector3 (90, 0, 0);
-				transform.Rotate (0, 90, 0);
+		if (inThreshold) 
+		{
+			if ((up | down) && !alreadyRotated)
+			{
+				Debug.Log ("going up && " + alreadyRotated);
+				if ((leftRight > 0) && (left == false)) 
+				{
+					right = true;
+					up = false;
+					down = false;
+					transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(90,90,0), Time.time * rotationSpeed);
+					alreadyRotated = true;
+				}
+				if ((leftRight < 0) && (right == false)) 
+				{
+					left = true;
+					up = false;
+					down = false;
+					transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(90,-90,0), Time.time * rotationSpeed);
+					alreadyRotated = true;
+				}
+
 			}
-			if ((leftRight < 0) && (right == false)) {
-				left = true;
-				up = false;
-				down = false;
-				transform.up = new Vector3 (-90, 0, 0);
-				transform.Rotate (0, -90, 0);
-			}
-			if ((upDown > 0) && (down == false)) {
-				up = true;
-				left = false;
-				right = false;
-				transform.up = new Vector3 (0, 0, 90);
-			}
-			if ((upDown < 0) && (up == false)) {
-				down = true;
-				left = false;
-				right = false;
-				transform.up = new Vector3 (0, 0, -90);
-				transform.Rotate (0, 180, 0);
+			if ((left | right) && !alreadyRotated)
+			{
+				if ((upDown > 0) && (down == false)) 
+				{
+					up = true;
+					left = false;
+					right = false;
+					transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(90,0,0), Time.time * rotationSpeed);
+					alreadyRotated = true;
+				}
+				if ((upDown < 0) && (up == false)) 
+				{
+					down = true;
+					left = false;
+					right = false;
+					transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(90,180,0), Time.time * rotationSpeed);
+					alreadyRotated = true;
+				}
+
+				alreadyRotated = true;
 			}
 		}
 
@@ -146,31 +154,29 @@ public class PlayerController : MonoBehaviour
 				Mathf.Clamp (GetComponent<Rigidbody>().transform.position.x, xMin, xMax),
 				yNorm,
 				Mathf.Clamp(GetComponent<Rigidbody>().transform.position.z, zMin, zMax)
-				);
+			);
     }
 
 	void FixedUpdate()
 	{
-		// Move the player forward (and prevent the player from moving backwards without turning around)
+		// Move the player forward
 		float moveHorizontal = Input.GetAxis("Horizontal");
 		float moveVertical = Input.GetAxis("Vertical");
 
 		Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
-		/*if (((movement.x > 0) && (left == true)) || ((movement.x < 0) && (right == true)) ||
-			((movement.z > 0) && (down == true)) || ((movement.z < 0) && (up == true)))
-		{
-			return;
-		}*/
 
 		GetComponent<Rigidbody>().velocity = movement * speed;
-
 	}
 
 	// Let the PlayerController know that the player is at an intersection
 	void OnTriggerEnter(Collider other)
 	{
-		if (other.tag == "Threshold") {
-			inThreshold = true;
+		if (!alreadyRotated) 
+		{
+			if (other.tag == "Threshold") 
+			{
+				inThreshold = true;
+			}
 		}
 	}
 
@@ -179,6 +185,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (other.tag == "Threshold") {
 			inThreshold = false;
+			alreadyRotated = false;
 		}
 	}
 
