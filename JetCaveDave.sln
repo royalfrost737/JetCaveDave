@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2008
 
-Project("{70891965-B033-CEF3-47FB-1D1294177F5B}") = "JetCaveDave-master", "Assembly-CSharp.csproj", "{380A5B4A-BFD3-4AD6-E6DF-541774488413}"
+Project("{6F201380-DBFB-36B2-0333-1682370060D4}") = "JetCaveDave", "Assembly-CSharp.csproj", "{AB0BBCC4-DE1D-5CA2-9F23-3C14895B04D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,15 +9,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{380A5B4A-BFD3-4AD6-E6DF-541774488413}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{380A5B4A-BFD3-4AD6-E6DF-541774488413}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{380A5B4A-BFD3-4AD6-E6DF-541774488413}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{380A5B4A-BFD3-4AD6-E6DF-541774488413}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB0BBCC4-DE1D-5CA2-9F23-3C14895B04D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB0BBCC4-DE1D-5CA2-9F23-3C14895B04D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB0BBCC4-DE1D-5CA2-9F23-3C14895B04D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB0BBCC4-DE1D-5CA2-9F23-3C14895B04D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-								GlobalSection(MonoDevelopProperties) = preSolution
+							GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Assembly-CSharp.csproj
 		Policies = $0
 		$0.TextStylePolicy = $1
