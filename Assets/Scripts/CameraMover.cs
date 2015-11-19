@@ -3,18 +3,32 @@ using System.Collections;
 
 public class CameraMover : MonoBehaviour 
 {
-	public float speed;
+	public float speed, lerpSpeed, rotationSpeed, turnSpeed;
 	public GameObject player;
-	private float rotation;
+	private float rotation, x, z;
+	private bool isLeftEnabled, isRightEnabled;
+
+	void Start()
+	{
+		isLeftEnabled = true;
+		isRightEnabled = true;
+	}
 
 	void OnEnable()
 	{
-		PlayerController.playerRotated += rotateCamera;
+		//PlayerController.playerRotated += rotateCamera;
 	}
 	
 	void OnDisable()
 	{
-		PlayerController.playerRotated -= rotateCamera;
+		//PlayerController.playerRotated -= rotateCamera;
+	}
+
+	void Update()
+	{
+		Vector3 CharacterRotation = player.transform.eulerAngles;
+
+		transform.rotation = Quaternion.Euler(90, CharacterRotation.y, 0);
 	}
 
 	void FixedUpdate()
@@ -35,13 +49,5 @@ public class CameraMover : MonoBehaviour
 		}
 
 		GetComponent<Rigidbody>().velocity = movement;
-	}
-
-	void rotateCamera(float playerRotation, float rotationSpeed, Collider threshold)
-	{
-		rotation = playerRotation;
-		transform.position = new Vector3 (threshold.bounds.center.x, transform.position.y, threshold.bounds.center.z);
-		transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(90, rotation, 0), Time.time * rotationSpeed);
-
 	}
 }
