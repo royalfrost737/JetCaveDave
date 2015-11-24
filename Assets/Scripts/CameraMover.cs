@@ -3,15 +3,11 @@ using System.Collections;
 
 public class CameraMover : MonoBehaviour 
 {
-	public float speed, lerpSpeed, rotationSpeed, turnSpeed;
+	public float speed, lerpSpeed;
 	public GameObject player;
-	private float rotation, x, z;
-	private bool isLeftEnabled, isRightEnabled;
 
 	void Start()
 	{
-		isLeftEnabled = true;
-		isRightEnabled = true;
 	}
 
 	void OnEnable()
@@ -26,28 +22,16 @@ public class CameraMover : MonoBehaviour
 
 	void Update()
 	{
+		Vector3 target = new Vector3(player.GetComponent<PlayerController>().currentThresholdCenter.x, transform.position.y, player.GetComponent<PlayerController>().currentThresholdCenter.z);
+
+		transform.Translate (Vector3.up * speed);
+
 		Vector3 CharacterRotation = player.transform.eulerAngles;
 
 		transform.rotation = Quaternion.Euler(90, CharacterRotation.y, 0);
-	}
-
-	void FixedUpdate()
-	{
-		Vector3 movement = new Vector3(0.0f, 0.0f, speed);
-
-		if (rotation == 90) 
-		{
-			movement = new Vector3 (speed, 0.0f, 0.0f);
-		}
-		if (rotation == -90) 
-		{
-			movement = new Vector3 (-speed, 0.0f, 0.0f);
-		}
-		if (rotation == 180) 
-		{
-			movement = new Vector3 (0.0f, 0.0f, -speed);
+		if (player.GetComponent<PlayerController> ().rotating && player.GetComponent<PlayerController> ().inThreshold) {
+			transform.position = Vector3.MoveTowards (transform.position, target, lerpSpeed * Time.deltaTime);
 		}
 
-		GetComponent<Rigidbody>().velocity = movement;
-	}
+	}	
 }

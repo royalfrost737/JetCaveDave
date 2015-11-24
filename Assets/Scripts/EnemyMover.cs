@@ -19,11 +19,11 @@ public class EnemyMover : MonoBehaviour
 			Vector3 distVec = player.transform.position - transform.position;
 			float distSqr = distVec.sqrMagnitude;
 			if (distSqr < radius * radius) {
-				if (directionType == "vertical") {
+				if (directionType == "horizontal") {
 					transform.Translate (Vector3.forward * speed);
 					//GetComponent<Rigidbody>().velocity = transform.forward * speed;
 				}
-				if (directionType == "horizontal") {
+				if (directionType == "vertical") {
 					//GetComponent<Rigidbody>().velocity = transform.right * speed;
 				
 					transform.Translate (Vector3.right * speed);

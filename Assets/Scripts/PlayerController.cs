@@ -6,43 +6,36 @@ public class PlayerController : MonoBehaviour
 {
 	// Public variables
 	public AudioClip regularShot, upgradedShot;
-	public bool haveShield, alreadyRotated;
-	public float speed, xOffset, yOffset, zOffset, fireRate, rotationSpeed;
+	public bool haveShield, rotating, inThreshold;
+	public float xOffset, yOffset, zOffset, fireRate, rotationSpeed;
 	public GameObject shot, camera;
 	public Transform shotSpawn;
-	public bool inThreshold, rotating;
 	public Vector3 currentThresholdCenter = new Vector3(0,0,0);
 
 	// Private variables
-	private bool up, down, left, right, gunUpgraded, isLeftEnabled, isRightEnabled;
-	private float xMin, xMax, zMin, zMax, yNorm, nextFire; 
+	private bool gunUpgraded, isLeftEnabled, isRightEnabled, alreadyRotated, isVertical, isHorizontal;
+	private float xMin, xMax, yNorm, zMin, zMax, nextFire; 
 
-	// The player rotated event fires an alert to the CamerMover when the player turns a corner
+	// The player rotated event fires an alert to the CameraMover when the player turns a corner
 	public delegate void PlayerRotated(float rotation, float rotationSpeed, Vector3 currentThresholdPosition);
 	public static event PlayerRotated playerRotated;
-
-
+	
 	public float moveSpeed;
 	public float turnSpeed;
 	public float lerpSpeed;
 
-
-
-	
 	void Start()
 	{
 		// At the start the player is not in a threshold and is facing forward and has no gun upgrades
 		inThreshold = false;
-		up = true;
-		down = false;
-		left = false;
-		right = false;
 		gunUpgraded = false;
 		haveShield = false;
 		alreadyRotated = false;
-		rotating = false;
 		isLeftEnabled = true;
 		isRightEnabled = true;
+		rotating = false;
+		isVertical = true;
+		isHorizontal = false;
 	}
 	
 	// Subscribe to DestroyByContact's alert when a gun upgrade is picked up
@@ -59,14 +52,8 @@ public class PlayerController : MonoBehaviour
 	
 	void Update()
 	{
-		// Continually calculate the player's boundary in relation to the camera
-		xMin = camera.transform.position.x-xOffset;
-		xMax = camera.transform.position.x+xOffset;
-		zMin = camera.transform.position.z-zOffset;
-		// This limits the player to the lower half of the screen
-		zMax = camera.transform.position.z-zOffset/8;
-		yNorm = camera.transform.position.y+yOffset;
-		
+		// ***************************** Shooting **********************************************
+
 		// Use a plane to make it easy to determine distance from player to mouse cursor
 		Plane castedPlane = new Plane(Vector3.up, Vector3.zero); 
 		
@@ -96,7 +83,8 @@ public class PlayerController : MonoBehaviour
 				Vector3 toOther = hitPoint - shotSpawn.position;
 				Quaternion leftAdjust = shotSpawn.rotation * Quaternion.Euler(0, -30, 0);
 				Quaternion rightAdjust = shotSpawn.rotation * Quaternion.Euler (0, 30, 0);
-				
+				//Quaternion upAdjust = shotSpawn.rotation * Quaternion.Euler (0, 0, 0);
+				Debug.Log(shotSpawn.rotation);
 				// Fire the shot in the correct direction
 				if (Vector3.Dot(forward, toOther) >= 0)
 				{
@@ -113,7 +101,24 @@ public class PlayerController : MonoBehaviour
 					}
 				}
 			}
+
+
+			/*
+			var position = Vector3(Input.mousePosition.x, Input.mousePosition.y, 10.0f);
+			position = Camera.main.ScreenToWorldPoint(position);
+			var go = Instantiate(shotSpawn, transform.position, Quaternion.identity) as GameObject;
+			go.transform.LookAt(position);    
+			Debug.Log(position);    
+			go.rigidbody.AddForce(go.transform.forward * 1000);*/
+
+
+
+
+
+
 		}
+
+		// ************************* Moving *******************************************
 
 		// Move up
 		if (Input.GetKey (KeyCode.UpArrow) | Input.GetKey (KeyCode.W))
@@ -123,46 +128,97 @@ public class PlayerController : MonoBehaviour
 		if (Input.GetKey (KeyCode.DownArrow) | Input.GetKey (KeyCode.S))
 			transform.Translate (-Vector3.up * moveSpeed * Time.deltaTime);
 
-		if (inThreshold) 
+		// If the player is in a threshold, using the left and right keys will rotate instead of move
+		if (inThreshold && !alreadyRotated) 
 		{
-			Vector3 target = new Vector3(currentThresholdCenter.x, transform.position.y, currentThresholdCenter.z);
+			// When the player rotates, use the center of the current threshold as the pivot point (move the player
+			// to the pivot point, and then rotate. This line gets the target pivot point/move-to location.
+			Vector3 target = new Vector3 (currentThresholdCenter.x, transform.position.y, currentThresholdCenter.z);
 
-			// Rotate left
+			// Rotate left (using either the left arrow or the A key)
 			if (Input.GetKey (KeyCode.LeftArrow) | Input.GetKey (KeyCode.A)) 
 			{
+				// This boolean is for the camera, to let it know that the player has started rotating
+				// The camera will move toward the center of the current threshold if the player is rotating
+				rotating = true;
+
+				// If the player chooses to go left, then right is no longer an option
 				isRightEnabled = false;
 
+				// If left is the first direction the player picks, then left will still be enabled
 				if (isLeftEnabled) 
 				{
+					// Make sure the player doesn't move past -90 degrees (90 degrees to the left)
 					if (transform.rotation.y > -.5) 
 					{
+						// Rotate the player
 						transform.Rotate (Vector3.forward, turnSpeed * Time.deltaTime);
-						transform.position = Vector3.MoveTowards(transform.position, target, lerpSpeed * Time.deltaTime);
+						// Move the player to the target pivot point at the center of the threshold
+						transform.position = Vector3.MoveTowards (transform.position, target, lerpSpeed * Time.deltaTime);
 					} 
 					else 
 					{
+						// This boolean is for the camera, to let it know that the player has stopped rotating
+						rotating = false;
+						// If the player has rotated too far, disable the key for rotation
 						isLeftEnabled = false;
+						// And rotate the player to the correct position
 						transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Euler (90, -90, 0), Time.time * rotationSpeed);
-						return;
+						alreadyRotated = true;
+
+						if (isVertical) 
+						{
+							isVertical = false;
+							isHorizontal = true;
+						} 
+						else if (isHorizontal) 
+						{
+							isHorizontal = false;
+							isVertical = true;
+						}
 					}
 				}
 			}
 
-			// Rotate right
-			if (Input.GetKey (KeyCode.RightArrow) | Input.GetKey (KeyCode.D))
-			{
+			// Rotate right (using either the right arrow or the D key)
+			if (Input.GetKey (KeyCode.RightArrow) | Input.GetKey (KeyCode.D)) 
+			{				
+				// This boolean is for the camera, to let it know that the player has started rotating
+				// The camera will move toward the center of the current threshold if the player is rotating
+				rotating = true;
+
+				// If the player chooses to go right, then left is no longer an option
 				isLeftEnabled = false;
+
+				// If right is the first direction the player picks, then right will still be enabled
 				if (isRightEnabled) 
 				{
+					// Make sure the player doesn't move past 90 degrees (90 degrees to the right)
 					if (transform.rotation.y < .5) 
 					{
+						// Rotate the player
 						transform.Rotate (Vector3.forward, -turnSpeed * Time.deltaTime);
 					} 
 					else 
 					{
+						// This boolean is for the camera, to let it know that the player has stopped rotating
+						rotating = false;
+						// If the player has rotated too far, disable the key for rotation
 						isRightEnabled = false;
+						// And rotate the player to the correct position
 						transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Euler (90, 90, 0), Time.time * rotationSpeed);
-						return;
+						alreadyRotated = true;
+
+						if (isVertical) 
+						{
+							isVertical = false;
+							isHorizontal = true;
+						} 
+						else if (isHorizontal) 
+						{
+							isHorizontal = false;
+							isVertical = true;
+						}
 					}
 				}
 			}
@@ -178,40 +234,45 @@ public class PlayerController : MonoBehaviour
 				transform.Translate (Vector3.right * moveSpeed * Time.deltaTime);
 		}
 
-
-		//transform.forward = Vector3.Normalize(new Vector3(Input.GetAxis("Horizontal"), -90, Input.GetAxis("Vertical")));
-
-		
-		/*GetComponent<Rigidbody>().transform.position = new Vector3 
-			(
-				Mathf.Clamp (GetComponent<Rigidbody>().transform.position.x, xMin, xMax),
-				yNorm,
-				Mathf.Clamp(GetComponent<Rigidbody>().transform.position.z, zMin, zMax)
-				);*/
+		//************************* Clamping ********************************
+		if (!rotating) 
+		{
+			transform.position = new Vector3 (
+			(Mathf.Clamp (transform.position.x, (camera.transform.position.x - 0.95f), (camera.transform.position.x + 0.95f))),
+		 	transform.position.y, 
+			(Mathf.Clamp (transform.position.z, (camera.transform.position.z - 1.3f), (camera.transform.position.z + 0.9f))));
+		}
 	}
 	
-	// Let the PlayerController know that the player is at an intersection
+	// If the player collides with a trigger, check to see if it is a threshold
 	void OnTriggerEnter(Collider other)
 	{
-		//currentThreshold = other;
-		currentThresholdCenter = other.bounds.center;
-		if (!alreadyRotated) 
+		// If it is a threshold ...
+		if (other.tag == "Threshold") 
 		{
-			if (other.tag == "Threshold") 
-			{
-				inThreshold = true;
-			}
+			// Change the alreadyRotated boolean to allow the player to make a single rotation choice
+			alreadyRotated = false;
+			// Change the inThreshold status
+			inThreshold = true;
+			// Establish a pivot point for the player and camera at the threshold's center
+			currentThresholdCenter = other.bounds.center;
 		}
 	}
 	
-	// Let the PlayerController know that the player has exited an intersection
+	// If the player exits a collision with a trigger, check to see if it is a threshold
 	void OnTriggerExit(Collider other)
 	{
-		if (other.tag == "Threshold") {
+		// If it is a threshold ...
+		if (other.tag == "Threshold") 
+		{
+			// Change the alreadyRotated boolean to prevent the player from making any more rotations
+			alreadyRotated = true;
+			// Change the inThreshold status
 			inThreshold = false;
-			alreadyRotated = false;
+			// Reset the direction booleans so that the player can rotate at the next threshold
+			isRightEnabled = true;
+			isLeftEnabled = true;
 		}
-		isLeftEnabled = true;
 	}
 	
 	//  Allow the player to shoot three shots at time if the player picked up a gun upgrade
