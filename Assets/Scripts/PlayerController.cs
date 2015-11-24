@@ -8,9 +8,10 @@ public class PlayerController : MonoBehaviour
 	public AudioClip regularShot, upgradedShot;
 	public bool haveShield, rotating, inThreshold;
 	public float xOffset, yOffset, zOffset, fireRate, rotationSpeed;
-	public GameObject shot, camera;
+	public GameObject shot;
 	public Transform shotSpawn;
 	public Vector3 currentThresholdCenter = new Vector3(0,0,0);
+	public string direction;
 
 	// Private variables
 	private bool gunUpgraded, isLeftEnabled, isRightEnabled, alreadyRotated, isVertical, isHorizontal;
@@ -19,6 +20,9 @@ public class PlayerController : MonoBehaviour
 	// The player rotated event fires an alert to the CameraMover when the player turns a corner
 	public delegate void PlayerRotated(float rotation, float rotationSpeed, Vector3 currentThresholdPosition);
 	public static event PlayerRotated playerRotated;
+
+	public delegate void ExitThreshold(string direction, Vector3 navigation);
+	public static event ExitThreshold exitThreshold;
 	
 	public float moveSpeed;
 	public float turnSpeed;
@@ -36,6 +40,7 @@ public class PlayerController : MonoBehaviour
 		rotating = false;
 		isVertical = true;
 		isHorizontal = false;
+		direction = "vertical";
 	}
 	
 	// Subscribe to DestroyByContact's alert when a gun upgrade is picked up
@@ -84,7 +89,6 @@ public class PlayerController : MonoBehaviour
 				Quaternion leftAdjust = shotSpawn.rotation * Quaternion.Euler(0, -30, 0);
 				Quaternion rightAdjust = shotSpawn.rotation * Quaternion.Euler (0, 30, 0);
 				//Quaternion upAdjust = shotSpawn.rotation * Quaternion.Euler (0, 0, 0);
-				Debug.Log(shotSpawn.rotation);
 				// Fire the shot in the correct direction
 				if (Vector3.Dot(forward, toOther) >= 0)
 				{
@@ -170,11 +174,13 @@ public class PlayerController : MonoBehaviour
 						{
 							isVertical = false;
 							isHorizontal = true;
+							direction = "horizontal";
 						} 
 						else if (isHorizontal) 
 						{
 							isHorizontal = false;
 							isVertical = true;
+							direction = "vertical";
 						}
 					}
 				}
@@ -213,11 +219,13 @@ public class PlayerController : MonoBehaviour
 						{
 							isVertical = false;
 							isHorizontal = true;
+							direction = "horizontal";
 						} 
 						else if (isHorizontal) 
 						{
 							isHorizontal = false;
 							isVertical = true;
+							direction = "vertical";
 						}
 					}
 				}
@@ -238,9 +246,9 @@ public class PlayerController : MonoBehaviour
 		if (!rotating) 
 		{
 			transform.position = new Vector3 (
-			(Mathf.Clamp (transform.position.x, (camera.transform.position.x - 0.95f), (camera.transform.position.x + 0.95f))),
+			(Mathf.Clamp (transform.position.x, (Camera.main.transform.position.x - 0.95f), (Camera.main.transform.position.x + 0.95f))),
 		 	transform.position.y, 
-			(Mathf.Clamp (transform.position.z, (camera.transform.position.z - 1.3f), (camera.transform.position.z + 0.9f))));
+			(Mathf.Clamp (transform.position.z, (Camera.main.transform.position.z - 1.3f), (Camera.main.transform.position.z + 0.9f))));
 		}
 	}
 	
@@ -272,6 +280,8 @@ public class PlayerController : MonoBehaviour
 			// Reset the direction booleans so that the player can rotate at the next threshold
 			isRightEnabled = true;
 			isLeftEnabled = true;
+
+			exitThreshold(direction, transform.TransformDirection(transform.forward));
 		}
 	}
 	

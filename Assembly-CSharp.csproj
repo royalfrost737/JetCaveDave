@@ -58,6 +58,7 @@
      <Compile Include="Assets\Scripts\CameraMover.cs" />
      <Compile Include="Assets\Scripts\CompassScript.cs" />
      <Compile Include="Assets\Scripts\DestroyByContact.cs" />
+     <Compile Include="Assets\Scripts\DestroyByTime.cs" />
      <Compile Include="Assets\Scripts\EnemyMover.cs" />
      <Compile Include="Assets\Scripts\GameController.cs" />
      <Compile Include="Assets\Scripts\GameOverScript.cs" />

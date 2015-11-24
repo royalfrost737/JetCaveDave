@@ -4,18 +4,19 @@ using System.Collections;
 
 public class GameController : MonoBehaviour
 {
-    //public GameObject hazard;
-    //public Vector3 spawnValues;
 	public Text scoreTextBox;
 	public string exitAttemptMessage;
 	public string youWinMessage;
 	private int score;
-	public int enemyValue;
+	public int enemyValue, hazardCount;
 	public bool hasKey;
-
+	public GameObject Octo, player;
 	public AudioClip EnemyKill;
 	public AudioClip Powerup;
-	
+
+	private Vector3 spawnPosition;
+
+	// The game controller subscribes to these events from other classes
 	void OnEnable()
 	{
 		DestroyByContact.scoreChanged += UpdateScore;
@@ -23,6 +24,7 @@ public class GameController : MonoBehaviour
 		DestroyByContact.exitAttempt += attemptedExit;
 		DestroyByContact.gotShield += PlayPowerupSound;
 		DestroyByContact.gotGunUpgrade += PlayPowerupSound;
+		PlayerController.exitThreshold += SpawnWaves;
 	}
 	
 	void OnDisable()
@@ -32,6 +34,7 @@ public class GameController : MonoBehaviour
 		DestroyByContact.exitAttempt -= attemptedExit;
 		DestroyByContact.gotShield -= PlayPowerupSound;
 		DestroyByContact.gotGunUpgrade -= PlayPowerupSound;
+		PlayerController.exitThreshold -= SpawnWaves;
 	}
 	
 	void Start()
@@ -39,15 +42,33 @@ public class GameController : MonoBehaviour
 		hasKey = false;
 		score = 0;
 		scoreTextBox.text = "Score: 0";
-		//SpawnWaves();
     }
 
-   /* void SpawnWaves()
+   void SpawnWaves(string direction, Vector3 navigation)
     {
-        Vector3 spawnPosition = new Vector3(Random.Range(-spawnValues.x, spawnValues.x), spawnValues.y, spawnValues.z);
-        Quaternion spawnRotation = Quaternion.identity;
-        Instantiate(hazard, spawnPosition, spawnRotation);
-    }*/
+		for (int i = 0; i < hazardCount; i++) {
+			if (player.GetComponent<PlayerController> ().direction == "vertical") {
+				if (navigation.z < 0) {
+					spawnPosition = new Vector3 (player.transform.position.x, player.transform.position.y, player.transform.position.z + 3 + i);
+
+				}
+				if (navigation.z > 0) {
+					spawnPosition = new Vector3 (player.transform.position.x, player.transform.position.y, player.transform.position.z - 3 - i);
+
+				}
+			}
+			if (player.GetComponent<PlayerController> ().direction == "horizontal") {
+				if (navigation.x < 0) {
+					spawnPosition = new Vector3 (player.transform.position.x + 3 + i, player.transform.position.y, player.transform.position.z);
+				}
+				if (navigation.x > 0) {
+					spawnPosition = new Vector3 (player.transform.position.x - 3 - i, player.transform.position.y, player.transform.position.z);
+				}
+			}
+			Quaternion spawnRotation = Quaternion.identity;
+			Instantiate (Octo, spawnPosition, spawnRotation);
+		}
+    }
 
 	void UpdateScore()
 	{
