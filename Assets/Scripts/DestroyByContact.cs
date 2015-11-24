@@ -27,6 +27,10 @@ public class DestroyByContact : MonoBehaviour {
 
 	void OnTriggerEnter(Collider other)
     {
+		if (this.gameObject.tag == "Enemy" && other.tag == "Threshold") 
+		{
+			Destroy (gameObject);
+		}
 
 		// If a bullet hits a wall or a threshold or is shot from the player, don't destroy any of those things
 		if (other.tag != "Enemy")
@@ -36,6 +40,7 @@ public class DestroyByContact : MonoBehaviour {
 			{
 				Destroy (gameObject);
 			}
+
 			return;
         }
 
