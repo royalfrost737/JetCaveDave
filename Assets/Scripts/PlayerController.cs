@@ -149,40 +149,31 @@ public class PlayerController : MonoBehaviour
 				// If the player chooses to go left, then right is no longer an option
 				isRightEnabled = false;
 
-				// If left is the first direction the player picks, then left will still be enabled
+				// If the player hasn't picked a direction yet, then left will still be enabled
 				if (isLeftEnabled) 
 				{
-					// Make sure the player doesn't move past -90 degrees (90 degrees to the left)
-					if (transform.rotation.y > -.5) 
-					{
-						// Rotate the player
-						transform.Rotate (Vector3.forward, turnSpeed * Time.deltaTime);
-						// Move the player to the target pivot point at the center of the threshold
-						transform.position = Vector3.MoveTowards (transform.position, target, lerpSpeed * Time.deltaTime);
-					} 
-					else 
-					{
-						// This boolean is for the camera, to let it know that the player has stopped rotating
-						rotating = false;
-						// If the player has rotated too far, disable the key for rotation
-						isLeftEnabled = false;
-						// And rotate the player to the correct position
-						transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Euler (90, -90, 0), Time.time * rotationSpeed);
-						alreadyRotated = true;
 
-						if (isVertical) 
-						{
-							isVertical = false;
-							isHorizontal = true;
-							direction = "horizontal";
-						} 
-						else if (isHorizontal) 
-						{
-							isHorizontal = false;
-							isVertical = true;
-							direction = "vertical";
-						}
+					StartCoroutine(RotatePlayer(Vector3.forward * 90, rotationSpeed, target));
+				
+					// This boolean is for the camera, to let it know that the player has stopped rotating
+					rotating = false;
+					// If the player has rotated too far, disable the key for rotation
+					isLeftEnabled = false;
+					alreadyRotated = true;
+
+					if (isVertical) 
+					{
+						isVertical = false;
+						isHorizontal = true;
+						direction = "horizontal";
+					} 
+					else if (isHorizontal) 
+					{
+						isHorizontal = false;
+						isVertical = true;
+						direction = "vertical";
 					}
+
 				}
 			}
 
@@ -199,34 +190,27 @@ public class PlayerController : MonoBehaviour
 				// If right is the first direction the player picks, then right will still be enabled
 				if (isRightEnabled) 
 				{
-					// Make sure the player doesn't move past 90 degrees (90 degrees to the right)
-					if (transform.rotation.y < .5) 
-					{
-						// Rotate the player
-						transform.Rotate (Vector3.forward, -turnSpeed * Time.deltaTime);
-					} 
-					else 
-					{
-						// This boolean is for the camera, to let it know that the player has stopped rotating
-						rotating = false;
-						// If the player has rotated too far, disable the key for rotation
-						isRightEnabled = false;
-						// And rotate the player to the correct position
-						transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Euler (90, 90, 0), Time.time * rotationSpeed);
-						alreadyRotated = true;
+					// Rotate the player
+					StartCoroutine(RotatePlayer(Vector3.forward * -90, rotationSpeed, target));
+				
+					// This boolean is for the camera, to let it know that the player has stopped rotating
+					rotating = false;
+					// If the player has rotated too far, disable the key for rotation
+					isRightEnabled = false;
 
-						if (isVertical) 
-						{
-							isVertical = false;
-							isHorizontal = true;
-							direction = "horizontal";
-						} 
-						else if (isHorizontal) 
-						{
-							isHorizontal = false;
-							isVertical = true;
-							direction = "vertical";
-						}
+					alreadyRotated = true;
+
+					if (isVertical) 
+					{
+						isVertical = false;
+						isHorizontal = true;
+						direction = "horizontal";
+					} 
+					else if (isHorizontal) 
+					{
+						isHorizontal = false;
+						isVertical = true;
+						direction = "vertical";
 					}
 				}
 			}
@@ -289,5 +273,27 @@ public class PlayerController : MonoBehaviour
 	void gunUpgradeHandler()
 	{
 		gunUpgraded = true;
+	}
+
+	IEnumerator RotatePlayer(Vector3 byAngles, float inTime, Vector3 target)
+	{
+		Quaternion fromAngle = transform.rotation ;
+		Quaternion toAngle = Quaternion.Euler(transform.eulerAngles + byAngles);
+
+		for(float t = 0f ; t < 1f ; t += Time.deltaTime/inTime)
+		{
+			transform.rotation = Quaternion.Lerp(fromAngle, toAngle, t);
+			transform.position = Vector3.Lerp(transform.position, target, t);
+			yield return null;
+		}
+
+		if (byAngles.z > 0) 
+		{
+			transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Euler (90, -90, 0), Time.time * rotationSpeed);
+		} 
+		else 
+		{
+			transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Euler (90, 90, 0), Time.time * rotationSpeed);
+		}
 	}
 }
