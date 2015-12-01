@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
 	public string direction;
 
 	// Private variables
-	private bool gunUpgraded, isLeftEnabled, isRightEnabled, alreadyRotated, isVertical, isHorizontal;
+	private bool gunUpgraded, isLeftEnabled, isRightEnabled, alreadyRotated, isVertical, isHorizontal, sameThreshold;
 	private float xMin, xMax, yNorm, zMin, zMax, nextFire; 
 
 	// The player rotated event fires an alert to the CameraMover when the player turns a corner
@@ -41,6 +41,7 @@ public class PlayerController : MonoBehaviour
 		isVertical = true;
 		isHorizontal = false;
 		direction = "vertical";
+		sameThreshold = false;
 	}
 	
 	// Subscribe to DestroyByContact's alert when a gun upgrade is picked up
@@ -114,8 +115,10 @@ public class PlayerController : MonoBehaviour
 			transform.Translate (Vector3.up * moveSpeed * Time.deltaTime);
 		
 		// Move down
-		if (Input.GetKey (KeyCode.DownArrow) | Input.GetKey (KeyCode.S))
-			transform.Translate (-Vector3.up * moveSpeed * Time.deltaTime);
+		if (Input.GetKey (KeyCode.DownArrow) | Input.GetKey (KeyCode.S)) 
+		{
+			transform.Translate (-Vector3.up * moveSpeed * Time.deltaTime);		
+		}
 
 		// If the player is in a threshold, using the left and right keys will rotate instead of move
 		if (inThreshold && !alreadyRotated) 
@@ -216,12 +219,20 @@ public class PlayerController : MonoBehaviour
 		// If it is a threshold ...
 		if (other.tag == "Threshold") 
 		{
-			// Change the alreadyRotated boolean to allow the player to make a single rotation choice
-			alreadyRotated = false;
-			// Change the inThreshold status
-			inThreshold = true;
-			// Establish a pivot point for the player and camera at the threshold's center
-			currentThresholdCenter = other.bounds.center;
+			if (other.bounds.center != currentThresholdCenter)
+			{
+				sameThreshold = false;
+				// Change the alreadyRotated boolean to allow the player to make a single rotation choice
+				alreadyRotated = false;
+				// Change the inThreshold status
+				inThreshold = true;
+				// Establish a pivot point for the player and camera at the threshold's center
+				currentThresholdCenter = other.bounds.center;
+			}
+			else
+			{
+				sameThreshold = true;
+			}
 		}
 	}
 	
@@ -231,15 +242,18 @@ public class PlayerController : MonoBehaviour
 		// If it is a threshold ...
 		if (other.tag == "Threshold") 
 		{
-			// Change the alreadyRotated boolean to prevent the player from making any more rotations
-			alreadyRotated = true;
-			// Change the inThreshold status
-			inThreshold = false;
-			// Reset the direction booleans so that the player can rotate at the next threshold
-			isRightEnabled = true;
-			isLeftEnabled = true;
+			if (!sameThreshold)
+			{
+				// Change the alreadyRotated boolean to prevent the player from making any more rotations
+				alreadyRotated = true;
+				// Change the inThreshold status
+				inThreshold = false;
+				// Reset the direction booleans so that the player can rotate at the next threshold
+				isRightEnabled = true;
+				isLeftEnabled = true;
 
-			exitThreshold(direction, transform.TransformDirection(transform.forward));
+				exitThreshold(direction, transform.TransformDirection(transform.forward));
+			}
 		}
 	}
 	
