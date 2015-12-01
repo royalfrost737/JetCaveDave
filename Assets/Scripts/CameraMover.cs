@@ -33,9 +33,27 @@ public class CameraMover : MonoBehaviour
 			CharacterRotation = player.transform.eulerAngles;
 
 			transform.rotation = Quaternion.Euler (90, CharacterRotation.y, 0);
-			if (player.GetComponent<PlayerController> ().rotating && player.GetComponent<PlayerController> ().inThreshold) {
-				transform.position = Vector3.MoveTowards (transform.position, target, lerpSpeed * Time.deltaTime);
+			Debug.Log (player.GetComponent<PlayerController> ().rotating + " rotating");
+			Debug.Log (player.GetComponent<PlayerController> ().inThreshold + " in threshold");
+			if (player.GetComponent<PlayerController> ().rotating && player.GetComponent<PlayerController> ().inThreshold) 
+			{
+				Debug.Log ("Got this far");
+				StartCoroutine(RotateCamera(lerpSpeed, target));
+
+				//transform.position = Vector3.MoveTowards (transform.position, target, lerpSpeed * Time.deltaTime);
 			}
 		}
 	}	
+
+	IEnumerator RotateCamera(float inTime, Vector3 target)
+	{
+		for(float t = 0f ; t < 1f ; t += Time.deltaTime/inTime)
+		{
+			transform.position = Vector3.MoveTowards (transform.position, target, t);
+			//transform.position = Vector3.Lerp(transform.position, target, t);
+			Debug.Log (target + " target");
+			Debug.Log (transform.position + " camera position");
+			yield return null;
+		}
+	}
 }

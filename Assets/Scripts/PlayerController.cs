@@ -105,21 +105,6 @@ public class PlayerController : MonoBehaviour
 					}
 				}
 			}
-
-
-			/*
-			var position = Vector3(Input.mousePosition.x, Input.mousePosition.y, 10.0f);
-			position = Camera.main.ScreenToWorldPoint(position);
-			var go = Instantiate(shotSpawn, transform.position, Quaternion.identity) as GameObject;
-			go.transform.LookAt(position);    
-			Debug.Log(position);    
-			go.rigidbody.AddForce(go.transform.forward * 1000);*/
-
-
-
-
-
-
 		}
 
 		// ************************* Moving *******************************************
@@ -142,10 +127,7 @@ public class PlayerController : MonoBehaviour
 			// Rotate left (using either the left arrow or the A key)
 			if (Input.GetKey (KeyCode.LeftArrow) | Input.GetKey (KeyCode.A)) 
 			{
-				// This boolean is for the camera, to let it know that the player has started rotating
-				// The camera will move toward the center of the current threshold if the player is rotating
-				rotating = true;
-
+			
 				// If the player chooses to go left, then right is no longer an option
 				isRightEnabled = false;
 
@@ -155,8 +137,6 @@ public class PlayerController : MonoBehaviour
 
 					StartCoroutine(RotatePlayer(Vector3.forward * 90, rotationSpeed, target));
 				
-					// This boolean is for the camera, to let it know that the player has stopped rotating
-					rotating = false;
 					// If the player has rotated too far, disable the key for rotation
 					isLeftEnabled = false;
 					alreadyRotated = true;
@@ -180,10 +160,6 @@ public class PlayerController : MonoBehaviour
 			// Rotate right (using either the right arrow or the D key)
 			if (Input.GetKey (KeyCode.RightArrow) | Input.GetKey (KeyCode.D)) 
 			{				
-				// This boolean is for the camera, to let it know that the player has started rotating
-				// The camera will move toward the center of the current threshold if the player is rotating
-				rotating = true;
-
 				// If the player chooses to go right, then left is no longer an option
 				isLeftEnabled = false;
 
@@ -193,8 +169,6 @@ public class PlayerController : MonoBehaviour
 					// Rotate the player
 					StartCoroutine(RotatePlayer(Vector3.forward * -90, rotationSpeed, target));
 				
-					// This boolean is for the camera, to let it know that the player has stopped rotating
-					rotating = false;
 					// If the player has rotated too far, disable the key for rotation
 					isRightEnabled = false;
 
@@ -277,6 +251,8 @@ public class PlayerController : MonoBehaviour
 
 	IEnumerator RotatePlayer(Vector3 byAngles, float inTime, Vector3 target)
 	{
+		rotating = true;
+
 		Quaternion fromAngle = transform.rotation ;
 		Quaternion toAngle = Quaternion.Euler(transform.eulerAngles + byAngles);
 
@@ -295,5 +271,7 @@ public class PlayerController : MonoBehaviour
 		{
 			transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Euler (90, 90, 0), Time.time * rotationSpeed);
 		}
+
+		rotating = false;
 	}
 }
