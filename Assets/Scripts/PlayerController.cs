@@ -14,12 +14,8 @@ public class PlayerController : MonoBehaviour
 	public string direction;
 
 	// Private variables
-	private bool gunUpgraded, isLeftEnabled, isRightEnabled, alreadyRotated, isVertical, isHorizontal, sameThreshold;
+	private bool gunUpgraded, isLeftEnabled, isRightEnabled, alreadyRotated, isVertical, isHorizontal, sameThreshold, alreadyExited;
 	private float xMin, xMax, yNorm, zMin, zMax, nextFire; 
-
-	// The player rotated event fires an alert to the CameraMover when the player turns a corner
-	public delegate void PlayerRotated(float rotation, float rotationSpeed, Vector3 currentThresholdPosition);
-	public static event PlayerRotated playerRotated;
 
 	public delegate void ExitThreshold(string direction, Vector3 navigation);
 	public static event ExitThreshold exitThreshold;
@@ -216,6 +212,7 @@ public class PlayerController : MonoBehaviour
 	// If the player collides with a trigger, check to see if it is a threshold
 	void OnTriggerEnter(Collider other)
 	{
+		Debug.Log (sameThreshold);
 		// If it is a threshold ...
 		if (other.tag == "Threshold") 
 		{
@@ -231,6 +228,7 @@ public class PlayerController : MonoBehaviour
 			}
 			else
 			{
+				Debug.Log ("setting same Threshold to true");
 				sameThreshold = true;
 			}
 		}
@@ -239,6 +237,7 @@ public class PlayerController : MonoBehaviour
 	// If the player exits a collision with a trigger, check to see if it is a threshold
 	void OnTriggerExit(Collider other)
 	{
+		Debug.Log (sameThreshold);
 		// If it is a threshold ...
 		if (other.tag == "Threshold") 
 		{

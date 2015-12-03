@@ -11,8 +11,6 @@ public class EnemyMover : MonoBehaviour
 	{
 		player = GameObject.Find ("player").transform;
 
-		Vector3 distVec = player.transform.position - transform.position;
-
 		if (player.GetComponent<PlayerController> ().direction == "vertical") 
 		{
 			if (player.transform.TransformDirection(player.transform.forward).z < 0) 
@@ -31,15 +29,15 @@ public class EnemyMover : MonoBehaviour
 	
 	void Update()
 	{
-
-		if (player.GetComponent<PlayerController> ().direction == "vertical") 
+		if (player != null) 
 		{
-			transform.Translate (Vector3.forward * speed);
-		}
+			if (player.GetComponent<PlayerController> ().direction == "vertical") {
+				transform.Translate (Vector3.forward * speed);
+			}
 		
-		if (player.GetComponent<PlayerController> ().direction == "horizontal") 
-		{
-			transform.Translate (Vector3.right * speed);
+			if (player.GetComponent<PlayerController> ().direction == "horizontal") {
+				transform.Translate (Vector3.right * speed);
+			}
 		}
 	}
 }
