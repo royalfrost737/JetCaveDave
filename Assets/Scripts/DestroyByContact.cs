@@ -27,22 +27,6 @@ public class DestroyByContact : MonoBehaviour {
 
 	void OnTriggerEnter(Collider other)
     {
-		
-		if (this.gameObject.tag == "Maze")
-		{
-			Debug.Log ("this maze");
-		}
-		
-		if (other.gameObject.tag == "Maze")
-		{
-			Debug.Log ("other maze");
-		}
-
-		if (this.gameObject.tag == "Enemy" && other.tag == "Threshold") 
-		{
-			Destroy (gameObject);
-		}
-
 		// If a bullet hits a wall or a threshold or is shot from the player, don't destroy any of those things
 		if (other.tag != "Enemy")
         {
@@ -68,18 +52,6 @@ public class DestroyByContact : MonoBehaviour {
 
     void OnCollisionEnter(Collision other)
     {
-
-		if (this.gameObject.tag == "Maze")
-		{
-			Debug.Log ("this maze");
-		}
-		
-		if (other.gameObject.tag == "Maze")
-		{
-			Debug.Log ("other maze");
-		}
-
-
 		// If an enemy hits the key, don't destroy the key
 		if (this.gameObject.tag == "Key" && other.gameObject.tag == "Enemy") {
 			return;
